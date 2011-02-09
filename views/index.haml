@@ -1,0 +1,10 @@
+%body
+  %h1 Goals
+  %p These games are current:
+  - games.each do |game|
+    %h2 Game
+    %dl
+      %dt Window length
+      %dd= game.window_length
+      %dt Start
+      %dd= game.window_start.strftime("%A %b %d %Y, %r")
