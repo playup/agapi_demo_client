@@ -6,7 +6,8 @@ class GoalsReference < Sinatra::Base
   set :haml, :format => :html5
   
   get '/' do
-    entry = 'http://goals-api.localhost/v1'.to_uri.get.deserialise
+    base_url = params['base_url'] || config.base_url
+    entry = base_url.to_uri.get.deserialise
     games_link = entry['link'].detect {|link| link['rel'] == 'games'}
     games_representation = games_link['href'].to_uri(:verify_mode => OpenSSL::SSL::VERIFY_NONE, :username => 'ray', :password => 'password').get.deserialise
     games = games_representation['games'].map do |source_game|
@@ -15,7 +16,14 @@ class GoalsReference < Sinatra::Base
         :window_length => source_game['window_length']
       })
     end
-    haml :index, :locals => {:games => games}
+    statistics = OpenStruct.new :number_of_requests => 2
+    haml :index, :locals => {:games => games, :config => config, :statistics => statistics}
+  end
+  
+  def config
+    @confg ||= OpenStruct.new({
+      :base_url => 'http://goals-api.localhost/v1'
+    })
   end
 
 end

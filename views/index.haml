@@ -1,10 +1,30 @@
+%head
+  %link{:href => "/stylesheets/screen.css", :media => "screen, projection", :rel => "stylesheet", :type => "text/css"}
+  %link{:href => "/stylesheets/print.css", :media => "print", :rel => "stylesheet", :type => "text/css"}
+  /[if IE]
+    %link{:href=>"/stylesheets/ie.css", :media=>"screen, projection", :rel=>"stylesheet", :type=>"text/css" }
+
 %body
-  %h1 Goals
-  %p These games are current:
-  - games.each do |game|
-    %h2 Game
-    %dl
-      %dt Window length
-      %dd= game.window_length
-      %dt Start
-      %dd= game.window_start.strftime("%A %b %d %Y, %r")
+  #container
+    #header
+      %h1 Goals Reference Client
+      %p
+        A simple front-end for the Goals game service.
+    #content
+      %p These games are current:
+      - games.each do |game|
+        %section
+          %h2 Game
+          :markdown
+            A #{game.window_length} game starts on #{game.window_start.strftime("%A %b %d %Y")}.
+      %hr.clear
+    #sidebar
+      %h3 Statistics
+      %ul
+        %li
+          Number of requests:
+          = statistics.number_of_requests
+    #footer
+      %form
+        %input{:type=>'url', :name=>'base_url', :value=>config.base_url}
+        %input{:type=>'submit', :value=>'Change base URL'}

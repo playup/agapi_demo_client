@@ -2,6 +2,7 @@ GEM
   remote: http://rubygems.org/
   specs:
     activesupport (3.0.4)
+    bluecloth (2.0.9)
     builder (2.1.2)
     compass (0.10.6)
       haml (>= 3.0.4)
@@ -24,6 +25,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  bluecloth
   compass
   haml
   sinatra
