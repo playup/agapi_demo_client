@@ -5,6 +5,7 @@ Wayne is an NHL fan, and knows how to play Goals.
 # Prize information
 when he opens the goals reference client
  * he should see the upcoming daily games
+ * he should not see past games
  * he should see the cash prize for each game
 
 

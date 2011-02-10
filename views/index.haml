@@ -1,4 +1,5 @@
 %head
+  %title Goals Reference Client
   %link{:href => "/stylesheets/screen.css", :media => "screen, projection", :rel => "stylesheet", :type => "text/css"}
   %link{:href => "/stylesheets/print.css", :media => "print", :rel => "stylesheet", :type => "text/css"}
   /[if IE]
@@ -14,9 +15,14 @@
       %p These games are current:
       - games.each do |game|
         %section
-          %h2 Game
+          %h2= game.window_start.strftime("%A's game")
           :markdown
             A #{game.window_length} game starts on #{game.window_start.strftime("%A %b %d %Y")}.
+            Prizes up for grabs:
+            
+            * #{game.prize.cash}
+            * #{game.prize.reward_points} reward points
+            * #{game.prize.skill_ranking_points} skill ranking points
       %hr.clear
     #sidebar
       %h3 Statistics
