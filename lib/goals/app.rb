@@ -3,7 +3,12 @@ require 'wrest'
 require 'active_support'
 
 class GoalsReference < Sinatra::Base
-  set :haml, :format => :html5
+  set :haml, :format => :html5, :escape_html => true
+  
+  error do
+    @error = env['sinatra.error']
+    haml :error
+  end
   
   get '/' do
     base_url = params['base_url'] || config.base_url

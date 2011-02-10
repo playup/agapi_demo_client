@@ -1,0 +1,31 @@
+%head
+  %link{:href => "/stylesheets/screen.css", :media => "screen, projection", :rel => "stylesheet", :type => "text/css"}
+  %link{:href => "/stylesheets/print.css", :media => "print", :rel => "stylesheet", :type => "text/css"}
+  /[if IE]
+    %link{:href=>"/stylesheets/ie.css", :media=>"screen, projection", :rel=>"stylesheet", :type=>"text/css" }
+
+%body
+  #container
+    #header
+      %h1 Goals Reference Client
+      %p
+        A simple front-end for the Goals game service.
+    #content
+      %h2
+        An error occurred:
+        = @error.class
+      %p= @error.message
+      %pre.backtrace
+        - @error.backtrace.each do |frame|
+          = frame
+      
+      %hr.clear
+    #sidebar
+      %h3 Statistics
+      %ul
+        %li
+          Awesomeness of this error: super-great
+    #footer
+      %form
+        %input{:type=>'url', :name=>'base_url' }
+        %input{:type=>'submit', :value=>'Change base URL'}
