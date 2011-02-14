@@ -28,7 +28,11 @@
           Includes the following #{game.matches.count} matches:
           %ul
             - game.matches.each do |match|
-              %li= "#{match.scheduled_start.strftime("%r")} - #{match.away_team} vs. #{match.home_team}"
+              %li
+                = "#{match.scheduled_start.strftime("%r")} - "
+                %a{:href => team_url(match.away_team)}= match.away_team
+                vs.
+                %a{:href => team_url(match.home_team)}= match.home_team
       %hr.clear
     #sidebar
       %h3 Statistics

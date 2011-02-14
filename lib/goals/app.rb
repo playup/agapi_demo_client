@@ -4,10 +4,19 @@ require 'active_support'
 
 class GoalsReference < Sinatra::Base
   set :haml, :format => :html5, :escape_html => true
-  
+    
   helpers do
     def to_date_time(date_time_string)
       DateTime.parse(date_time_string).in_time_zone('Eastern Time (US & Canada)')
+    end
+    
+    def base_url
+      base = "http://#{Sinatra::Application.bind}"
+      port = Sinatra::Application.port == 80 ? base : base << ":#{Sinatra::Application.port}"
+    end
+    
+    def team_url(team_id)
+      "#{base_url}/teams/#{team_id}"
     end
   end
   
@@ -43,6 +52,10 @@ class GoalsReference < Sinatra::Base
     end
     statistics = OpenStruct.new :number_of_requests => 2
     haml :index, :locals => {:games => interesting_games, :config => config, :statistics => statistics}
+  end
+  
+  get "/teams/:team_id" do
+    haml :'teams/show', :locals => {}
   end
   
   def config
