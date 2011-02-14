@@ -7,3 +7,7 @@ gem 'haml'
 gem 'bluecloth'
 gem 'compass'
 
+group :development do
+  gem 'shotgun'
+end
+

@@ -18,11 +18,17 @@
           %h2= game.window_start.strftime("%A's game")
           :markdown
             A #{game.window_length} game starts on #{game.window_start.strftime("%A %b %d %Y")}.
+            
             Prizes up for grabs:
             
             * #{game.prize.cash}
             * #{game.prize.reward_points} reward points
             * #{game.prize.skill_ranking_points} skill ranking points
+            
+          Includes the following #{game.matches.count} matches:
+          %ul
+            - game.matches.each do |match|
+              %li= "#{match.scheduled_start.strftime("%r")} - #{match.away_team} vs. #{match.home_team}"
       %hr.clear
     #sidebar
       %h3 Statistics
