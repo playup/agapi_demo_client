@@ -9,14 +9,17 @@ class GoalsReference < Sinatra::Base
     def to_date_time(date_time_string)
       DateTime.parse(date_time_string).in_time_zone('Eastern Time (US & Canada)')
     end
-    
-    def base_url
-      base = "http://#{Sinatra::Application.bind}"
-      port = Sinatra::Application.port == 80 ? base : base << ":#{Sinatra::Application.port}"
+
+    def api_base_url
+      params['base_url'] || config.base_url
     end
     
-    def team_url(team_id)
-      "#{base_url}/teams/#{team_id}"
+    def app_base_url
+      @app_base_url ||= "#{request.env['rack.url_scheme']}://#{request.env['HTTP_HOST']}"
+    end
+    
+    def team_url(team)
+      "#{app_base_url}/team?team_url=#{CGI::escape(team.href)}"
     end
   end
   
@@ -26,9 +29,8 @@ class GoalsReference < Sinatra::Base
   end
   
   get '/' do
-    base_url = params['base_url'] || config.base_url
-    entry = base_url.to_uri.get.deserialise
-    games_link = entry['link'].detect {|link| link['rel'].split.include? 'games'}
+    entry = api_base_url.to_uri.get.deserialise
+    games_link = extract_relation_link(entry, 'games')
     
     games_representation = games_link['href'].to_uri(:verify_mode => config.ssl_verify_mode, :username => config.username, :password => config.password).get.deserialise
       
@@ -40,8 +42,8 @@ class GoalsReference < Sinatra::Base
         :matches => source_game['matches'].map do |match|
           OpenStruct.new({
             :scheduled_start => to_date_time(match['scheduled_start']),
-            :home_team => match['home_team']['short_name'],
-            :away_team => match['away_team']['short_name']
+            :home_team => OpenStruct.new(match['home_team']),
+            :away_team => OpenStruct.new(match['away_team'])
           })
         end
       })
@@ -54,8 +56,18 @@ class GoalsReference < Sinatra::Base
     haml :index, :locals => {:games => interesting_games, :config => config, :statistics => statistics}
   end
   
-  get "/teams/:team_id" do
-    haml :'teams/show', :locals => {}
+  get "/team" do
+    team_url = params[:team_url]
+    team_representation = team_url.to_uri(:verify_mode => config.ssl_verify_mode, :username => config.username, :password => config.password).get.deserialise
+    team = OpenStruct.new(team_representation)
+    players_link = extract_relation_link(team_representation, 'players')
+    players_representation = players_link['href'].to_uri(:verify_mode => config.ssl_verify_mode, :username => config.username, :password => config.password).get.deserialise
+    
+    team_players = players_representation['players'].map do |source_player|
+      OpenStruct.new(source_player)
+    end
+    
+    haml :'teams/show', :locals => {:team => team, :players => team_players}
   end
   
   def config
@@ -67,6 +79,10 @@ class GoalsReference < Sinatra::Base
       # :ssl_verify_mode => OpenSSL::SSL::VERIFY_PEER # verify
       :ssl_verify_mode => OpenSSL::SSL::VERIFY_NONE # don't verify
     })
+  end
+  
+  def extract_relation_link resource, rel_name
+    resource['link'].detect {|link| link['rel'].split.include? rel_name}
   end
   
 end
