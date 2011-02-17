@@ -16,4 +16,4 @@
       %h3= "Players:"
       %ul
         - players.each do |player|
-          %li= "#{player.name} (Tier #{player.tier})"
+          %li= "#{player.first_name} #{player.last_name} (Tier #{player.tier})"

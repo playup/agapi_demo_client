@@ -3,4 +3,7 @@ tmp/*
 public/stylesheets/ie.css
 public/stylesheets/screen.css
 public/stylesheets/print.css
+.idea
+.bundle
+vendor
 

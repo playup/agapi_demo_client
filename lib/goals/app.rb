@@ -15,6 +15,7 @@ class GoalsReference < Sinatra::Base
     end
     
     def app_base_url
+      # XXX: Does not support 'script name', i.e. a path - add this.
       @app_base_url ||= "#{request.env['rack.url_scheme']}://#{request.env['HTTP_HOST']}"
     end
     
@@ -38,7 +39,11 @@ class GoalsReference < Sinatra::Base
       OpenStruct.new({
         :window_start => to_date_time(source_game['window_start']),
         :window_length => source_game['window_length'],
-        :prize => OpenStruct.new(source_game['prize']),
+        :prize => OpenStruct.new({
+            :cash => source_game['prize']['cash']['display'],
+            :reward_points => source_game['prize']['reward_points'],
+            :skill_ranking_points => source_game['prize']['skill_ranking_points']
+          }),
         :matches => source_game['matches'].map do |match|
           OpenStruct.new({
             :scheduled_start => to_date_time(match['scheduled_start']),
