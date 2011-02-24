@@ -84,8 +84,15 @@ class GoalsReference < Sinatra::Base
     entry_representation = get_url(params[:entry_url])
     entry = OpenStruct.new({
       :placed_by => entry_representation['pup']['display_name'],
+      :score => entry_representation['score_card']['total'],
       :rank => entry_representation['rank']['position'],
-      :entry_count => entry_representation['rank']['entry_count']
+      :entry_count => entry_representation['rank']['entry_count'],
+      :front_line => entry_representation['front_line'].map do |source_player|
+        OpenStruct.new({
+          :name => "#{source_player['first_name']} #{source_player['last_name']}",
+          :team => OpenStruct.new(source_player['team'])
+        })
+      end
     })
     
     haml :entry, :locals => {:entry => entry}

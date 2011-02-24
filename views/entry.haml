@@ -14,4 +14,10 @@
     #content
       %h2 An entry
       :markdown
-        #{entry.placed_by}'s entry is ranked #{entry.rank} out of #{entry.entry_count}
+        #{entry.placed_by}'s entry has #{entry.score} points and is ranked #{entry.rank} out of #{entry.entry_count}
+      %ul
+        - entry.front_line.each do |player|
+          %li
+            = player.name
+            %a{:href => team_url(player.team)}
+              = player.team.short_name
