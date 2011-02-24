@@ -22,6 +22,10 @@ class GoalsReference < Sinatra::Base
     def team_url(team)
       "#{app_base_url}/team?team_url=#{CGI::escape(team.href)}"
     end
+    
+    def quick_pick_url_for_api_game_url(api_game_url)
+      "#{app_base_url}/quickpick?game_url=#{CGI::escape(api_game_url)}"
+    end
   end
   
   error do
@@ -50,7 +54,8 @@ class GoalsReference < Sinatra::Base
             :home_team => OpenStruct.new(match['home_team']),
             :away_team => OpenStruct.new(match['away_team'])
           })
-        end
+        end ,
+        :quick_pick_url => quick_pick_url_for_api_game_url(source_game['href'])
       })
     end
     
@@ -75,6 +80,71 @@ class GoalsReference < Sinatra::Base
     haml :'teams/show', :locals => {:team => team, :players => team_players}
   end
   
+  get "/entry" do
+    entry_representation = get_url(params[:entry_url])
+    entry = OpenStruct.new({
+      :placed_by => entry_representation['pup']['display_name'],
+      :rank => entry_representation['rank']['position'],
+      :entry_count => entry_representation['rank']['entry_count']
+    })
+    
+    haml :entry, :locals => {:entry => entry}
+  end
+  
+  post "/quickpick" do
+    game_url = params[:game_url]
+    game_representation = get_url(game_url)
+    pick_representation = follow_link(:relation => 'new_entry', :on => game_representation)
+    until form_exists_for?('entry', :on => pick_representation)
+      picked_player = pick_representation['players'].first
+      pick_representation = follow_link(:relation => 'pick', :on => picked_player)
+    end
+    new_entry_response = submit_form('entry', :on => pick_representation)
+    raise "that didn't create properly" unless new_entry_response.created?
+    
+    entry_url = new_entry_response.headers['Location']
+    redirect "/entry?entry_url=#{CGI::escape(entry_url)}"
+  end
+  
+  def submit_form(relation, options)
+    from_resource = options[:on]
+    form = extract_form_for(relation, :on => from_resource)
+    
+    raise NotImplemetedError('Agape only supports POSTing forms') unless form['method'] == 'POST'
+    raise NotImplemetedError('Agape only supports JSON forms') unless form['enctype'] == 'application/json'
+    
+    properties = form['properties'] || {}
+    properties_with_values = properties.select {|name, details| details.has_key? 'value'}
+    payload = Hash[properties_with_values.map do |property_name,property|
+      [property_name, property['value']]
+    end
+    ]
+    
+    json_body = payload.to_json
+    new_entry_resource = post_url(form['href'], json_body, 'Content-Type' => form['enctype'])
+  end
+  
+  def form_exists_for?(relation, options)
+    resource = options[:on]
+    !!extract_form_for(relation, :on => resource)
+  end
+  
+  
+  def follow_link(options)
+    relation = options[:relation]
+    from_resource = options[:on]
+    link = extract_relation_link from_resource, relation
+    get_url(link['href'])
+  end
+  
+  def get_url(url)
+    url.to_uri(:verify_mode => config.ssl_verify_mode, :username => config.username, :password => config.password).get.deserialise
+  end
+  
+  def post_url(url, body, options = {})
+    url.to_uri(:verify_mode => config.ssl_verify_mode, :username => config.username, :password => config.password).post(body, options)
+  end
+    
   def config
     @confg ||= OpenStruct.new({
       # :base_url => 'http://goals-api.heroku.com/v1',
@@ -87,7 +157,27 @@ class GoalsReference < Sinatra::Base
   end
   
   def extract_relation_link resource, rel_name
-    resource['link'].detect {|link| link['rel'].split.include? rel_name}
+    raise ArgumentError unless resource
+    raise ArgumentError unless resource.has_key? 'link'
+    resource['link'].detect do |link|
+      next unless link.has_key? 'rel'
+      link['rel'].split.include? rel_name
+    end
+  end
+  
+  def extract_form_for(relationship, options)
+    resource = options[:on]
+    raise ArgumentError unless resource
+    unless resource.has_key? 'link'
+      puts "No link in #{resource.keys}"
+      return nil
+    end
+    
+    resource['link'].detect do |link|
+      next unless link['rel'].split.include? relationship
+      next unless link.has_key? 'enctype'
+      true
+    end
   end
   
 end

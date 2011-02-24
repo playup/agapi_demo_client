@@ -27,3 +27,10 @@ when he drills into the first entry
  * he should see the public entry details
    - picked players and their goals
    - current score
+
+# Entering a game
+given he has some credit
+when he opens the goals reference client
+and presses the "Quick Pick" button for the first game
+ * he should see a message telling him he's eligible for a prize
+ * he should see the names of three players in his front line

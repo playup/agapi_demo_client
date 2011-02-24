@@ -16,6 +16,9 @@
       - games.each do |game|
         %section
           %h2= game.window_start.strftime("%A's game")
+          %form{:action=>game.quick_pick_url, :method=>'POST'}
+            %input{:type=>'submit', :value=>'Enter with Quick Picks'}
+          
           :markdown
             A #{game.window_length} game starts on #{game.window_start.strftime("%A %b %d %Y")}.
             
