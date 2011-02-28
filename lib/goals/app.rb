@@ -19,6 +19,10 @@ class GoalsReference < Sinatra::Base
       @app_base_url ||= "#{request.env['rack.url_scheme']}://#{request.env['HTTP_HOST']}"
     end
 
+    def game_entries_url(entries_link)
+      "#{app_base_url}/entries?game_entries_url=#{CGI::escape(entries_link['href'])}"
+    end
+
     def team_url(team)
       "#{app_base_url}/team?team_url=#{CGI::escape(team.href)}"
     end
@@ -74,7 +78,8 @@ class GoalsReference < Sinatra::Base
             :away_team => OpenStruct.new(match['away_team'])
           })
         end ,
-        :quick_pick_url => quick_pick_url_for_api_game_url(source_game['href'])
+        :quick_pick_url => quick_pick_url_for_api_game_url(source_game['href']),
+        :entries_url => game_entries_url(extract_relation_link(source_game, 'entries'))
       })
     end
 
@@ -129,6 +134,22 @@ class GoalsReference < Sinatra::Base
     })
 
     haml :entry, :locals => {:entry => entry}
+  end
+
+
+  get "/entries" do
+    entries_representation = get_url(params['game_entries_url'])
+
+    entries = entries_representation['entries'].map do |entry_representation|
+      OpenStruct.new({
+              :rank => entry_representation['rank']['position'],
+              :score => entry_representation['score'],
+              :pup_display_name => entry_representation['pup_display_name']
+              })
+    end
+
+    haml :entries, :locals => {:entries => entries}
+
   end
 
   post "/quickpick" do
