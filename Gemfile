@@ -9,5 +9,6 @@ gem 'compass'
 
 group :development do
   gem 'shotgun'
+  gem 'thin'
 end
 

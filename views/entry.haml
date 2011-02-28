@@ -21,3 +21,8 @@
             = player.name
             %a{:href => team_url(player.team)}
               = player.team.short_name
+      %h2 The Score Card
+      %ul
+        - entry.score_card.players.each do |player|
+          %li
+            = "#{player.name} #{player.subbed? ? "is Subbed" : ""} (#{player.score.map {|score| "#{score.strength}: #{score.points}"}.join(", ")})"
