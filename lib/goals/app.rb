@@ -2,6 +2,8 @@ require 'sinatra/base'
 require 'wrest'
 require 'active_support'
 
+Wrest::Caching.default_to_memcached!
+
 class GoalsReference < Sinatra::Base
   set :haml, :format => :html5, :escape_html => true
 
