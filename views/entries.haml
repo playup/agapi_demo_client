@@ -13,10 +13,20 @@
         A simple front-end for the Goals game service.
     #content
       %h2 Entries
-      %ul
+      %table
+        %tr
+          %td
+            %b Name
+          %td
+            %b Rank
+          %td  
+            %b Score
         - entries.each do |entry|
-          %li
-            = entry.pup_display_name
-            = entry.rank
-            = entry.score
+          %tr
+            %td
+              = entry.pup_display_name
+            %td
+              = entry.rank
+            %td  
+              = entry.score
 
