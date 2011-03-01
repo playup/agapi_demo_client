@@ -35,9 +35,28 @@ class GoalsReference < Sinatra::Base
 
   get '/' do
     entry = api_base_url.to_uri.get.deserialise
-    games_link = extract_relation_link(entry, 'games')
 
-    games_representation = games_link['href'].to_uri(:verify_mode => config.ssl_verify_mode, :username => config.username, :password => config.password).get.deserialise
+    me_representation = follow_link :relation => 'me', :on => entry
+
+    me = OpenStruct.new({
+      :display_name => me_representation['display_name'],
+      :member_since => to_date_time(me_representation['member_since']),
+      :decided_entries => me_representation['decided_entries'].map do |entry_link|
+        entry_representation = entry_link['href'].to_uri(:verify_mode => config.ssl_verify_mode, :username => config.username, :password => config.password).get.deserialise
+        OpenStruct.new({
+          :front_line => entry_representation['front_line'].map do |player|
+            OpenStruct.new({:first_name => player['first_name'], :last_name => player['last_name']})
+          end,
+          :prize => OpenStruct.new({
+            :cash => entry_representation['prize']['cash']['display'],
+            :reward_points => entry_representation['prize']['reward_points'],
+            :skill_ranking_points => entry_representation['prize']['skill_ranking_points']
+          })
+        })
+      end
+    })
+
+    games_representation = follow_link :relation => 'games', :on => entry
 
     all_games = games_representation['games'].map do |source_game|
       OpenStruct.new({
@@ -63,7 +82,7 @@ class GoalsReference < Sinatra::Base
       game.window_length == 'daily'
     end
     statistics = OpenStruct.new :number_of_requests => 2
-    haml :index, :locals => {:games => interesting_games, :config => config, :statistics => statistics}
+    haml :index, :locals => {:games => interesting_games, :config => config, :statistics => statistics, :me => me}
   end
 
   get "/team" do

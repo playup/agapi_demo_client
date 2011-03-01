@@ -18,16 +18,16 @@
           %h2= game.window_start.strftime("%A's game")
           %form{:action=>game.quick_pick_url, :method=>'POST'}
             %input{:type=>'submit', :value=>'Enter with Quick Picks'}
-          
+
           :markdown
             A #{game.window_length} game starts on #{game.window_start.strftime("%A %b %d %Y")}.
-            
+
             Prizes up for grabs:
-            
+
             * #{game.prize.cash}
             * #{game.prize.reward_points} reward points
             * #{game.prize.skill_ranking_points} skill ranking points
-            
+
           Includes the following #{game.matches.count} matches:
           %ul
             - game.matches.each do |match|
@@ -38,6 +38,27 @@
                 %a{:href => team_url(match.home_team)}= match.home_team.short_name
       %hr.clear
     #sidebar
+      %h3 Profile
+      %ul
+        %li
+          Display Name:
+          = me.display_name
+        %li
+          Member Since:
+          = me.member_since
+      %h3 Prizes
+      %ul
+        - me.decided_entries.each do |entry|
+          %li
+            = entry.front_line.map {|player| "'#{player.first_name} #{player.last_name}'"}.join(" ")
+            %ul
+              %li
+                = "Cash: #{entry.prize.cash}"
+              %li
+                = "Reward Points: #{entry.prize.reward_points}"
+              %li
+                = "Skill Ranking Points: #{entry.prize.skill_ranking_points}"
+
       %h3 Statistics
       %ul
         %li
