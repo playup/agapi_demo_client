@@ -81,8 +81,7 @@ class GoalsReference < Sinatra::Base
     interesting_games, other_games = all_games.partition do |game|
       game.window_length == 'daily'
     end
-    statistics = OpenStruct.new :number_of_requests => 2
-    haml :index, :locals => {:games => interesting_games, :config => config, :statistics => statistics, :me => me}
+    haml :index, :locals => {:games => interesting_games, :config => config, :me => me}
   end
 
   get "/team" do
