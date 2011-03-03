@@ -12,10 +12,23 @@
       %p
         A simple front-end for the Goals game service.
     #content
-      %h2= "#{team.name} (#{team.short_name})"
-      %h3= "Players:"
+      %h3= "Player Details:"
       %ul
-        - players.each do |player|
-          %li
-            %a{:href => player_url(player)}=  "#{player.first_name} #{player.last_name}"
-            ="(Tier #{player.tier})"
+        %li
+          %b Name:
+          = "#{player.first_name} #{player.last_name}"
+        %li
+          %b Shirt Number:
+          = "#{player.shirt_number}"
+        %li
+          %b Position:
+          = "#{player.position}"
+        %li
+          %b Tier:
+          = "#{player.tier}"
+        %li
+          %b Total goals:
+          = "#{player.goals}"
+        %li
+          %b Total bonus:
+          = "#{player.total_bonus}"

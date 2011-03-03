@@ -27,6 +27,10 @@ class GoalsReference < Sinatra::Base
       "#{app_base_url}/team?team_url=#{CGI::escape(team.href)}"
     end
 
+    def player_url(player)
+      "#{app_base_url}/player?player_url=#{CGI::escape(player.href)}"
+    end
+
     def quick_pick_url_for_api_game_url(api_game_url)
       "#{app_base_url}/quickpick?game_url=#{CGI::escape(api_game_url)}"
     end
@@ -101,6 +105,24 @@ class GoalsReference < Sinatra::Base
     end
 
     haml :'teams/show', :locals => {:team => team, :players => team_players}
+  end
+
+  get "/player" do
+    player_url = params[:player_url]
+    player_representation = player_url.to_uri(:verify_mode => config.ssl_verify_mode, :username => config.username, :password => config.password).get.deserialise
+    player = player_representation['player']
+    
+    player = OpenStruct.new({
+            :first_name => player['first_name'],
+            :last_name => player['last_name'],
+            :shirt_number => player['shirt_number'],
+            :position => player['position'],
+            :tier => player['tier'],
+            :goals => player['goals']['total'],
+            :total_bonus => player['goals']['total_bonus']
+    })
+
+    haml :'players/show', :locals => {:player => player}
   end
 
   get "/entry" do
