@@ -1,0 +1,25 @@
+%head
+  %title Goals Reference Client
+  %link{:href => "/stylesheets/screen.css", :media => "screen, projection", :rel => "stylesheet", :type => "text/css"}
+  %link{:href => "/stylesheets/print.css", :media => "print", :rel => "stylesheet", :type => "text/css"}
+  /[if IE]
+    %link{:href=>"/stylesheets/ie.css", :media=>"screen, projection", :rel=>"stylesheet", :type=>"text/css" }
+
+%body
+  #container
+    #header
+      %h1 Goals Reference Client
+      %p
+        A simple front-end for the Goals game service.
+    #content
+      %h3= "Match Details: " "#{match.away_team} @ #{match.home_team}"
+      %ul
+        %li
+          %b Home Team:
+          = "#{match.home_team} (#{match.home_short})"
+        %li
+          %b Away Team:
+          = "#{match.away_team} (#{match.away_short})"
+        %li
+          %b Schedule Start:
+          = "#{match.scheduled_start.to_date.strftime("%d %b %Y %H:%M:%S %Z")}"

@@ -32,7 +32,7 @@
           %ul
             - game.matches.each do |match|
               %li
-                = "#{match.scheduled_start.strftime("%r")} - "
+                %a{:href => match_url(match)}=  "#{match.scheduled_start.strftime("%r")} - "                
                 %a{:href => team_url(match.away_team)}= match.away_team.short_name
                 vs.
                 %a{:href => team_url(match.home_team)}= match.home_team.short_name

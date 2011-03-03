@@ -23,6 +23,11 @@ class GoalsReference < Sinatra::Base
       "#{app_base_url}/entries?game_entries_url=#{CGI::escape(entries_link['href'])}"
     end
 
+    def match_url(match)
+      p match
+      "#{app_base_url}/match?match_url=#{CGI::escape(match.href)}"
+    end
+
     def team_url(team)
       "#{app_base_url}/team?team_url=#{CGI::escape(team.href)}"
     end
@@ -79,7 +84,8 @@ class GoalsReference < Sinatra::Base
           OpenStruct.new({
             :scheduled_start => to_date_time(match['scheduled_start']),
             :home_team => OpenStruct.new(match['home_team']),
-            :away_team => OpenStruct.new(match['away_team'])
+            :away_team => OpenStruct.new(match['away_team']),
+            :href => match['href']      
           })
         end ,
         :quick_pick_url => quick_pick_url_for_api_game_url(source_game['href']),
@@ -91,6 +97,22 @@ class GoalsReference < Sinatra::Base
       game.window_length == 'daily'
     end
     haml :index, :locals => {:games => interesting_games, :config => config, :me => me}
+  end
+
+  get "/match" do
+    match_url = params[:match_url]
+    match_representation = match_url.to_uri(:verify_mode => config.ssl_verify_mode, :username => config.username, :password => config.password).get.deserialise
+    match_hash = match_representation['match']
+    
+    match = OpenStruct.new({
+            :home_team => match_hash['home_team']['name'],
+            :home_short => match_hash['home_team']['short_name'],
+            :away_team => match_hash['away_team']['name'],
+            :away_short => match_hash['away_team']['short_name'],
+            :scheduled_start => match_hash['scheduled_start']
+    })
+
+    haml :'matches/show', :locals => {:match => match}
   end
 
   get "/team" do
@@ -110,16 +132,16 @@ class GoalsReference < Sinatra::Base
   get "/player" do
     player_url = params[:player_url]
     player_representation = player_url.to_uri(:verify_mode => config.ssl_verify_mode, :username => config.username, :password => config.password).get.deserialise
-    player = player_representation['player']
+    player_hash = player_representation['player']
     
     player = OpenStruct.new({
-            :first_name => player['first_name'],
-            :last_name => player['last_name'],
-            :shirt_number => player['shirt_number'],
-            :position => player['position'],
-            :tier => player['tier'],
-            :goals => player['goals']['total'],
-            :total_bonus => player['goals']['total_bonus']
+            :first_name => player_hash['first_name'],
+            :last_name => player_hash['last_name'],
+            :shirt_number => player_hash['shirt_number'],
+            :position => player_hash['position'],
+            :tier => player_hash['tier'],
+            :goals => player_hash['goals']['total'],
+            :total_bonus => player_hash['goals']['total_bonus']
     })
 
     haml :'players/show', :locals => {:player => player}
