@@ -23,8 +23,7 @@ class GoalsReference < Sinatra::Base
       "#{app_base_url}/entries?game_entries_url=#{CGI::escape(entries_link['href'])}"
     end
 
-    def match_url(match)
-      p match
+    def match_url(match)      
       "#{app_base_url}/match?match_url=#{CGI::escape(match.href)}"
     end
 
