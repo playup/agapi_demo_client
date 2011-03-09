@@ -46,14 +46,16 @@ class GoalsReference < Sinatra::Base
   end
 
   get '/' do
-    entry = api_base_url.to_uri.get.deserialise
+    base = api_base_url.to_uri.get.deserialise
 
-    me_representation = follow_link :relation => 'me', :on => entry
+    me_representation = follow_link :relation => 'me', :on => base
+
+    decided_entries_representation = follow_link :relation => 'decided_entries', :on => me_representation
 
     me = OpenStruct.new({
       :display_name => me_representation['display_name'],
       :member_since => to_date_time(me_representation['member_since']),
-      :decided_entries => me_representation['decided_entries'].map do |entry_link|
+      :decided_entries => decided_entries_representation['entries'].map do |entry_link|
         entry_representation = entry_link['href'].to_uri(:verify_mode => config.ssl_verify_mode, :username => config.username, :password => config.password).get.deserialise
         OpenStruct.new({
           :front_line => entry_representation['front_line'].map do |player|
@@ -68,7 +70,7 @@ class GoalsReference < Sinatra::Base
       end
     })
 
-    games_representation = follow_link :relation => 'games', :on => entry
+    games_representation = follow_link :relation => 'games', :on => base
 
     all_games = games_representation['games'].map do |source_game|
       OpenStruct.new({
