@@ -47,6 +47,7 @@
         %li
           Member Since:
           = me.member_since
+      %a{:href => transactions_url(me)} Transactions
       %h3 Prizes
       %ul
         - me.decided_entries.each do |entry|

@@ -35,8 +35,12 @@ class GoalsReference < Sinatra::Base
       "#{app_base_url}/player?player_url=#{CGI::escape(player.href)}"
     end
 
-     def my_entries_awaiting_decision_url(pup)
+    def my_entries_awaiting_decision_url(pup)
       "#{app_base_url}/pups_entries?entries_awaiting_decision_url=#{CGI::escape(pup.entries_awaiting_decision_url)}"
+    end
+
+    def transactions_url(pup)
+     "#{app_base_url}/transactions?transactions_url=#{CGI::escape(pup.transactions_url)}"
     end
 
     def quick_pick_url_for_api_game_url(api_game_url)
@@ -60,6 +64,7 @@ class GoalsReference < Sinatra::Base
       :display_name => me_representation['display_name'],
       :member_since => to_date_time(me_representation['member_since']),
       :entries_awaiting_decision_url => extract_relation_link(me_representation, 'entries_awaiting_decision')['href'],
+      :transactions_url => extract_relation_link(me_representation, 'transactions')['href'],
       :decided_entries => decided_entries_representation['entries'].map do |entry_link|
         entry_representation = entry_link['href'].to_uri(:verify_mode => config.ssl_verify_mode, :username => config.username, :password => config.password).get.deserialise
         OpenStruct.new({
@@ -213,11 +218,24 @@ class GoalsReference < Sinatra::Base
               :rank => entry_representation['rank']['position'],
               :score => entry_representation['score'],
               :pup_display_name => entry_representation['pup_display_name']
-              })
+      })
     end
 
     haml :entries, :locals => {:entries => entries}
+  end
 
+  get "/transactions" do
+    transactions_representation = get_url(params['transactions_url'])
+
+    transactions = transactions_representation['transactions'].map do |transaction_representation|
+      OpenStruct.new({
+              :amount => transaction_representation['amount']['display'],
+              :status => transaction_representation['status'],
+              :description => transaction_representation['description']
+      })
+    end
+
+    haml :transactions, :locals => {:transactions => transactions}
   end
 
   post "/quickpick" do
