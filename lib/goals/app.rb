@@ -23,7 +23,7 @@ class GoalsReference < Sinatra::Base
       "#{app_base_url}/entries?game_entries_url=#{CGI::escape(entries_link['href'])}"
     end
 
-    def match_url(match)      
+    def match_url(match)
       "#{app_base_url}/match?match_url=#{CGI::escape(match.href)}"
     end
 
@@ -33,6 +33,10 @@ class GoalsReference < Sinatra::Base
 
     def player_url(player)
       "#{app_base_url}/player?player_url=#{CGI::escape(player.href)}"
+    end
+
+     def my_entries_awaiting_decision_url(pup)
+      "#{app_base_url}/pups_entries?entries_awaiting_decision_url=#{CGI::escape(pup.entries_awaiting_decision_url)}"
     end
 
     def quick_pick_url_for_api_game_url(api_game_url)
@@ -55,6 +59,7 @@ class GoalsReference < Sinatra::Base
     me = OpenStruct.new({
       :display_name => me_representation['display_name'],
       :member_since => to_date_time(me_representation['member_since']),
+      :entries_awaiting_decision_url => extract_relation_link(me_representation, 'entries_awaiting_decision')['href'],
       :decided_entries => decided_entries_representation['entries'].map do |entry_link|
         entry_representation = entry_link['href'].to_uri(:verify_mode => config.ssl_verify_mode, :username => config.username, :password => config.password).get.deserialise
         OpenStruct.new({
@@ -86,7 +91,7 @@ class GoalsReference < Sinatra::Base
             :scheduled_start => to_date_time(match['scheduled_start']),
             :home_team => OpenStruct.new(match['home_team']),
             :away_team => OpenStruct.new(match['away_team']),
-            :href => match['href']      
+            :href => match['href']
           })
         end ,
         :quick_pick_url => quick_pick_url_for_api_game_url(source_game['href']),
@@ -104,7 +109,7 @@ class GoalsReference < Sinatra::Base
     match_url = params[:match_url]
     match_representation = match_url.to_uri(:verify_mode => config.ssl_verify_mode, :username => config.username, :password => config.password).get.deserialise
     match_hash = match_representation['match']
-    
+
     match = OpenStruct.new({
             :home_team => match_hash['home_team']['name'],
             :home_short => match_hash['home_team']['short_name'],
@@ -134,7 +139,7 @@ class GoalsReference < Sinatra::Base
     player_url = params[:player_url]
     player_representation = player_url.to_uri(:verify_mode => config.ssl_verify_mode, :username => config.username, :password => config.password).get.deserialise
     player_hash = player_representation['player']
-    
+
     player = OpenStruct.new({
             :first_name => player_hash['first_name'],
             :last_name => player_hash['last_name'],
@@ -146,6 +151,24 @@ class GoalsReference < Sinatra::Base
     })
 
     haml :'players/show', :locals => {:player => player}
+  end
+
+  get "/pups_entries" do
+    entries_awaiting_decision_representation = get_url(params[:entries_awaiting_decision_url])
+    next_link = "?entries_awaiting_decision_url=#{CGI::escape((extract_relation_link entries_awaiting_decision_representation, 'next')['href'])}" if (extract_relation_link entries_awaiting_decision_representation, 'next')
+    prev_link = "?entries_awaiting_decision_url=#{CGI::escape((extract_relation_link entries_awaiting_decision_representation, 'prev')['href'])}" if (extract_relation_link entries_awaiting_decision_representation, 'prev')
+    start_link = "?entries_awaiting_decision_url=#{CGI::escape((extract_relation_link entries_awaiting_decision_representation, 'start')['href'])}" if (extract_relation_link entries_awaiting_decision_representation, 'start')
+    entries = entries_awaiting_decision_representation['entries'].map do |entry_link|
+      entry_representation = entry_link['href'].to_uri(:verify_mode => config.ssl_verify_mode, :username => config.username, :password => config.password).get.deserialise
+      OpenStruct.new({
+        :front_line => entry_representation['front_line'].map do |player|
+          OpenStruct.new({:first_name => player['first_name'], :last_name => player['last_name']})
+        end,
+        :score => entry_representation['score']
+      })
+    end
+
+    haml :'pups_entries/show', :locals => {:next_link => next_link, :prev_link => prev_link, :start_link => start_link, :entries => entries}
   end
 
   get "/entry" do
