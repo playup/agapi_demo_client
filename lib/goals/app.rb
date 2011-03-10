@@ -120,7 +120,8 @@ class GoalsReference < Sinatra::Base
             :home_short => match_hash['home_team']['short_name'],
             :away_team => match_hash['away_team']['name'],
             :away_short => match_hash['away_team']['short_name'],
-            :scheduled_start => match_hash['scheduled_start']
+            :scheduled_start => match_hash['scheduled_start'],
+            :end_date => match_hash['end_date']
     })
 
     haml :'matches/show', :locals => {:match => match}
