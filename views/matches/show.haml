@@ -22,7 +22,7 @@
           = "#{match.away_team} (#{match.away_short})"
         %li
           %b Schedule Start:
-          = "#{match.scheduled_start.to_date.strftime("%d %b %Y %H:%M:%S %Z")}" if match.scheduled_start
+          = "#{match.scheduled_start.strftime("%d %b %Y %I:%M:%S %p %Z")}" if match.scheduled_start
         %li
           %b End Date:
-          = match.end_date ? "#{match.end_date.to_date.strftime("%d %b %Y %H:%M:%S %Z")}" : '---'
+          = match.end_date ? "#{match.end_date.to_date.strftime("%d %b %Y %I:%M:%S %p %Z")}" : '---'
