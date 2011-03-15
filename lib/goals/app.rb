@@ -36,7 +36,11 @@ class GoalsReference < Sinatra::Base
     end
 
     def my_entries_awaiting_decision_url(pup)
-      "#{app_base_url}/pups_entries?entries_awaiting_decision_url=#{CGI::escape(pup.entries_awaiting_decision_url)}"
+      "#{app_base_url}/pups_entries_awaiting_decision?entries_awaiting_decision_url=#{CGI::escape(pup.entries_awaiting_decision_url)}"
+    end
+
+    def my_decided_entries_url(pup)
+      "#{app_base_url}/pups_decided_entries?decided_entries_url=#{CGI::escape(pup.decided_entries_url)}"
     end
 
     def transactions_url(pup)
@@ -64,6 +68,7 @@ class GoalsReference < Sinatra::Base
       :display_name => me_representation['display_name'],
       :member_since => to_date_time(me_representation['member_since']),
       :entries_awaiting_decision_url => extract_relation_link(me_representation, 'entries_awaiting_decision')['href'],
+      :decided_entries_url => extract_relation_link(me_representation, 'decided_entries')['href'],
       :transactions_url => extract_relation_link(me_representation, 'transactions')['href'],
       :decided_entries => decided_entries_representation['entries'].map do |entry_link|
         entry_representation = entry_link['href'].to_uri(:verify_mode => config.ssl_verify_mode, :username => config.username, :password => config.password).get.deserialise
@@ -159,7 +164,7 @@ class GoalsReference < Sinatra::Base
     haml :'players/show', :locals => {:player => player}
   end
 
-  get "/pups_entries" do
+  get "/pups_entries_awaiting_decision" do
     entries_awaiting_decision_representation = get_url(params[:entries_awaiting_decision_url])
     next_link = "?entries_awaiting_decision_url=#{CGI::escape((extract_relation_link entries_awaiting_decision_representation, 'next')['href'])}" if (extract_relation_link entries_awaiting_decision_representation, 'next')
     prev_link = "?entries_awaiting_decision_url=#{CGI::escape((extract_relation_link entries_awaiting_decision_representation, 'prev')['href'])}" if (extract_relation_link entries_awaiting_decision_representation, 'prev')
@@ -174,7 +179,25 @@ class GoalsReference < Sinatra::Base
       })
     end
 
-    haml :'pups_entries/show', :locals => {:next_link => next_link, :prev_link => prev_link, :start_link => start_link, :entries => entries}
+    haml :'pups_entries_awaiting_decision/show', :locals => {:next_link => next_link, :prev_link => prev_link, :start_link => start_link, :entries => entries}
+  end
+
+  get "/pups_decided_entries" do
+    decided_entries_representation = get_url(params[:decided_entries_url])
+    next_link = "?decided_entries_url=#{CGI::escape((extract_relation_link decided_entries_representation, 'next')['href'])}" if (extract_relation_link decided_entries_representation, 'next')
+    prev_link = "?decided_entries_url=#{CGI::escape((extract_relation_link decided_entries_representation, 'prev')['href'])}" if (extract_relation_link decided_entries_representation, 'prev')
+    start_link = "?decided_entries_url=#{CGI::escape((extract_relation_link decided_entries_representation, 'start')['href'])}" if (extract_relation_link decided_entries_representation, 'start')
+    entries = decided_entries_representation['entries'].map do |entry_link|
+      entry_representation = entry_link['href'].to_uri(:verify_mode => config.ssl_verify_mode, :username => config.username, :password => config.password).get.deserialise
+      OpenStruct.new({
+        :front_line => entry_representation['front_line'].map do |player|
+          OpenStruct.new({:first_name => player['first_name'], :last_name => player['last_name']})
+        end,
+        :score => entry_representation['score']
+      })
+    end
+
+    haml :'pups_decided_entries/show', :locals => {:next_link => next_link, :prev_link => prev_link, :start_link => start_link, :entries => entries}
   end
 
   get "/entry" do

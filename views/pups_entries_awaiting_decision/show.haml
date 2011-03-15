@@ -1,0 +1,35 @@
+%head
+  %title Goals Reference Client
+  %link{:href => "/stylesheets/screen.css", :media => "screen, projection", :rel => "stylesheet", :type => "text/css"}
+  %link{:href => "/stylesheets/print.css", :media => "print", :rel => "stylesheet", :type => "text/css"}
+  /[if IE]
+    %link{:href=>"/stylesheets/ie.css", :media=>"screen, projection", :rel=>"stylesheet", :type=>"text/css" }
+
+%body
+  #container
+    #header
+      %h1 Goals Reference Client
+      %p
+        A simple front-end for the Goals game service.
+    #content
+      %h2 Pups Entries
+      %table
+        %tr
+          %td
+            %b Name
+          %td
+            %b Score
+        - entries.each do |entry|
+          %tr
+            %td
+              = entry.front_line.map {|player| "'#{player.first_name} #{player.last_name}'"}.join(" ")
+            %td
+              = entry.score
+        - if start_link
+          %a{:href => start_link}= 'Start'
+        - if prev_link
+          %a{:href => prev_link}= 'Previous'
+        - if next_link
+          %a{:href => next_link}= 'Next'
+
+

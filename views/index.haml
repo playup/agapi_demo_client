@@ -43,7 +43,11 @@
       %ul
         %li
           Display Name:
-          %a{:href => my_entries_awaiting_decision_url(me)}= me.display_name
+          = me.display_name
+        %li
+          Entries:
+          %a{:href => my_entries_awaiting_decision_url(me)}= "Awaiting Decision"
+          %a{:href => my_decided_entries_url(me)}= "Decided"
         %li
           Member Since:
           = me.member_since
