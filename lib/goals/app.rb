@@ -74,7 +74,7 @@ class GoalsReference < Sinatra::Base
         entry_representation = entry_link['href'].to_uri(:verify_mode => config.ssl_verify_mode, :username => config.username, :password => config.password).get.deserialise
         OpenStruct.new({
           :front_line => entry_representation['front_line'].map do |player|
-            OpenStruct.new({:first_name => player['first_name'], :last_name => player['last_name']})
+            OpenStruct.new(player)
           end,
           :prize => OpenStruct.new({
             :cash => entry_representation['prize']['cash']['display'],
@@ -84,6 +84,16 @@ class GoalsReference < Sinatra::Base
         })
       end
     })
+
+    nhl_league_representation = base['leagues'].detect do |league|
+      league['id'] == 'NHL'
+    end
+
+    current_season_representation = nhl_league_representation['current_season']
+    rankings_representation = follow_link :relation => 'rankings', :on => current_season_representation
+    rankings = rankings_representation['rankings'].map do |ranking|
+      OpenStruct.new(ranking)
+    end
 
     games_representation = follow_link :relation => 'games', :on => base
 
@@ -112,7 +122,7 @@ class GoalsReference < Sinatra::Base
     interesting_games, other_games = all_games.partition do |game|
       game.window_length == 'daily'
     end
-    haml :index, :locals => {:games => interesting_games, :config => config, :me => me}
+    haml :index, :locals => {:games => interesting_games, :config => config, :me => me, :rankings => rankings}
   end
 
   get "/match" do

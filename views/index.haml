@@ -39,6 +39,17 @@
           %a{:href => game.entries_url}= "Click here to see the game's entries"
       %hr.clear                                                             
     #sidebar
+      %h3 Season Top Ten
+      - unless rankings.empty?
+        %ul
+          - rankings.each do |ranking|
+            %li
+              = "#{ranking.login}: #{ranking.score}"
+
+      - if rankings.empty?
+        %p
+          No Rankings Yet
+
       %h3 Profile
       %ul
         %li
