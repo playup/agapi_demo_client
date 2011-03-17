@@ -23,6 +23,10 @@ class GoalsReference < Sinatra::Base
       "#{app_base_url}/entries?game_entries_url=#{CGI::escape(entries_link['href'])}"
     end
 
+    def game_entry_url(entry)
+      "#{app_base_url}/entry?entry_url=#{CGI::escape(entry.href)}"
+    end
+
     def match_url(match)
       "#{app_base_url}/match?match_url=#{CGI::escape(match.href)}"
     end
@@ -182,6 +186,7 @@ class GoalsReference < Sinatra::Base
     entries = entries_awaiting_decision_representation['entries'].map do |entry_link|
       entry_representation = entry_link['href'].to_uri(:verify_mode => config.ssl_verify_mode, :username => config.username, :password => config.password).get.deserialise
       OpenStruct.new({
+        :href => entry_representation['href'],
         :front_line => entry_representation['front_line'].map do |player|
           OpenStruct.new({:first_name => player['first_name'], :last_name => player['last_name']})
         end,
@@ -200,6 +205,7 @@ class GoalsReference < Sinatra::Base
     entries = decided_entries_representation['entries'].map do |entry_link|
       entry_representation = entry_link['href'].to_uri(:verify_mode => config.ssl_verify_mode, :username => config.username, :password => config.password).get.deserialise
       OpenStruct.new({
+        :href => entry_representation['href'],      
         :front_line => entry_representation['front_line'].map do |player|
           OpenStruct.new({:first_name => player['first_name'], :last_name => player['last_name']})
         end,
@@ -212,6 +218,13 @@ class GoalsReference < Sinatra::Base
 
   get "/entry" do
     entry_representation = get_url(params[:entry_url])
+    rank_representation = entry_representation['rank']    
+    share_rank_response = submit_form('share', :on => rank_representation)
+    share_game_rank = OpenStruct.new({
+      :share_url => generate_facebook_share_url(share_rank_response['href']),
+      :twitter => generate_twitter_share_url(share_rank_response['twitter']['message']),
+      :email => generate_email_share_tag(share_rank_response['email']['body'], share_rank_response['email']['subject'])
+    })
     entry = OpenStruct.new({
       :placed_by => entry_representation['pup']['display_name'],
       :score => entry_representation['score_card']['total'],
@@ -240,7 +253,7 @@ class GoalsReference < Sinatra::Base
       end
     })
 
-    haml :entry, :locals => {:entry => entry}
+    haml :entry, :locals => {:entry => entry, :share_game_rank => share_game_rank}
   end
 
 
@@ -249,6 +262,7 @@ class GoalsReference < Sinatra::Base
 
     entries = entries_representation['entries'].map do |entry_representation|
       OpenStruct.new({
+              :href => entry_representation['href'],
               :rank => entry_representation['rank']['position'],
               :score => entry_representation['score'],
               :pup_display_name => entry_representation['pup_display_name']
@@ -322,7 +336,7 @@ class GoalsReference < Sinatra::Base
   end
 
   def post_url(url, body, options = {})
-    url.to_uri(:verify_mode => config.ssl_verify_mode, :username => config.username, :password => config.password).post(body, options)
+    url.to_uri(:verify_mode => config.ssl_verify_mode, :username => config.username, :password => config.password).post(body, options).deserialise
   end
 
   def config
@@ -357,6 +371,22 @@ class GoalsReference < Sinatra::Base
       next unless link['rel'].split.include? relationship
       next unless link.has_key? 'enctype'
       true
+    end
+  end
+
+  def generate_facebook_share_url(callback_url)
+    unless callback_url.blank?
+      "http://www.facebook.com/sharer.php?u=#{CGI.escape(callback_url)}"
+    end
+  end
+
+  def generate_twitter_share_url(message)
+    "http://twitter.com/home?status=#{CGI.escape(message)}" unless message.blank?
+  end
+
+  def generate_email_share_tag(email_message, email_subject)
+    unless email_message.blank? || email_subject.blank?
+      "mailto:?body=#{email_message}&subject=#{email_subject}"
     end
   end
 

@@ -26,3 +26,9 @@
         - entry.score_card.players.each do |player|
           %li
             = "#{player.name} #{player.subbed? ? "is Subbed" : ""} (#{player.score.map {|score| "#{score.strength}: #{score.points}"}.join(", ")})"
+
+      %h2 Share your rank on:
+      %a{:href => share_game_rank.share_url}= "Facebook"
+      %a{:href => share_game_rank.twitter}= "Twitter"
+      %a{:href => share_game_rank.email}= "Email"
+

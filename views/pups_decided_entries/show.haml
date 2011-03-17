@@ -22,8 +22,8 @@
         - entries.each do |entry|
           %tr
             %td
-              = entry.front_line.map {|player| "'#{player.first_name} #{player.last_name}'"}.join(" ")
-            %td
+              %a{:href => game_entry_url(entry)}= entry.front_line.map {|player| "'#{player.first_name} #{player.last_name}'"}.join(" ")
+            %td                                             
               = entry.score
         - if start_link
           %a{:href => start_link}= 'Start'

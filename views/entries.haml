@@ -24,7 +24,7 @@
         - entries.each do |entry|
           %tr
             %td
-              = entry.pup_display_name
+              %a{:href => game_entry_url(entry)}= entry.pup_display_name
             %td
               = entry.rank
             %td  
