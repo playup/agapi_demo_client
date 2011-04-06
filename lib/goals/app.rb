@@ -64,7 +64,7 @@ class GoalsReference < Sinatra::Base
   end
 
   get '/' do
-    base = api_base_url.to_uri.get.deserialise
+    base = get_url(api_base_url)
 
     me_representation = follow_link :relation => 'me', :on => base
 
@@ -77,7 +77,7 @@ class GoalsReference < Sinatra::Base
       :decided_entries_url => extract_relation_link(me_representation, 'decided_entries')['href'],
       :transactions_url => extract_relation_link(me_representation, 'transactions')['href'],
       :decided_entries => decided_entries_representation['entries'].map do |entry_link|
-        entry_representation = entry_link['href'].to_uri(:verify_mode => config.ssl_verify_mode, :username => config.username, :password => config.password).get.deserialise
+        entry_representation = get_url(entry_link['href'])
         OpenStruct.new({
           :front_line => entry_representation['front_line'].map do |player|
             OpenStruct.new(player)
@@ -133,7 +133,7 @@ class GoalsReference < Sinatra::Base
 
   get "/match" do
     match_url = params[:match_url]
-    match_representation = match_url.to_uri(:verify_mode => config.ssl_verify_mode, :username => config.username, :password => config.password).get.deserialise
+    match_representation = get_url(match_url)
     match_hash = match_representation['match']
 
     match = OpenStruct.new({
@@ -150,11 +150,10 @@ class GoalsReference < Sinatra::Base
 
   get "/team" do
     team_url = params[:team_url]
-    team_representation = team_url.to_uri(:verify_mode => config.ssl_verify_mode, :username => config.username, :password => config.password).get.deserialise
+    team_representation = get_url(team_url)
     team = OpenStruct.new(team_representation)
     players_link = extract_relation_link(team_representation, 'players')
-    players_representation = players_link['href'].to_uri(:verify_mode => config.ssl_verify_mode, :username => config.username, :password => config.password).get.deserialise
-
+    players_representation = get_url(players_link['href'])
     team_players = players_representation['players'].map do |source_player|
       OpenStruct.new(source_player)
     end
@@ -164,7 +163,7 @@ class GoalsReference < Sinatra::Base
 
   get "/player" do
     player_url = params[:player_url]
-    player_representation = player_url.to_uri(:verify_mode => config.ssl_verify_mode, :username => config.username, :password => config.password).get.deserialise
+    player_representation = get_url(player_url)
     player_hash = player_representation['player']
 
     player = OpenStruct.new({
@@ -186,7 +185,7 @@ class GoalsReference < Sinatra::Base
     prev_link = "?entries_awaiting_decision_url=#{CGI::escape((extract_relation_link entries_awaiting_decision_representation, 'prev')['href'])}" if (extract_relation_link entries_awaiting_decision_representation, 'prev')
     start_link = "?entries_awaiting_decision_url=#{CGI::escape((extract_relation_link entries_awaiting_decision_representation, 'start')['href'])}" if (extract_relation_link entries_awaiting_decision_representation, 'start')
     entries = entries_awaiting_decision_representation['entries'].map do |entry_link|
-      entry_representation = entry_link['href'].to_uri(:verify_mode => config.ssl_verify_mode, :username => config.username, :password => config.password).get.deserialise
+      entry_representation = get_url(entry_link['href'])
       OpenStruct.new({
         :href => entry_representation['href'],
         :front_line => entry_representation['front_line'].map do |player|
@@ -205,7 +204,7 @@ class GoalsReference < Sinatra::Base
     prev_link = "?decided_entries_url=#{CGI::escape((extract_relation_link decided_entries_representation, 'prev')['href'])}" if (extract_relation_link decided_entries_representation, 'prev')
     start_link = "?decided_entries_url=#{CGI::escape((extract_relation_link decided_entries_representation, 'start')['href'])}" if (extract_relation_link decided_entries_representation, 'start')
     entries = decided_entries_representation['entries'].map do |entry_link|
-      entry_representation = entry_link['href'].to_uri(:verify_mode => config.ssl_verify_mode, :username => config.username, :password => config.password).get.deserialise
+      entry_representation = get_url(entry_link['href'])
       OpenStruct.new({
         :href => entry_representation['href'],      
         :front_line => entry_representation['front_line'].map do |player|
