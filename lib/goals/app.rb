@@ -220,7 +220,7 @@ class GoalsReference < Sinatra::Base
   get "/entry" do
     entry_representation = get_url(params[:entry_url])
     rank_representation = entry_representation['rank']    
-    share_rank_response = submit_form('share', :on => rank_representation)
+    share_rank_response = submit_form('share', :on => rank_representation).deserialise
     share_game_rank = OpenStruct.new({
       :share_url => generate_facebook_share_url(share_rank_response['href']),
       :twitter => generate_twitter_share_url(share_rank_response['twitter']['message']),
@@ -293,6 +293,7 @@ class GoalsReference < Sinatra::Base
     pick_representation = follow_link(:relation => 'new_entry', :on => game_representation)
     until form_exists_for?('entry', :on => pick_representation)
       picked_player = pick_representation['players'].first
+      raise 'no player picked' unless picked_player
       pick_representation = follow_link(:relation => 'pick', :on => picked_player)
     end
     new_entry_response = submit_form('entry', :on => pick_representation)
@@ -332,12 +333,14 @@ class GoalsReference < Sinatra::Base
     get_url(link['href'])
   end
 
-  def get_url(url)
-    url.to_uri(:verify_mode => config.ssl_verify_mode, :username => config.username, :password => config.password).get.deserialise
+  def get_url(url, http_options = {})
+    options = {'Accept' => 'application/json'}.merge(http_options)
+    url.to_uri(:verify_mode => config.ssl_verify_mode, :username => config.username, :password => config.password).get({}, options).tap{|r| p r}.deserialise
   end
 
   def post_url(url, body, options = {})
-    url.to_uri(:verify_mode => config.ssl_verify_mode, :username => config.username, :password => config.password).post(body, options).deserialise
+    http_options = {'Accept' => 'application/json'}.merge(options)
+    url.to_uri(:verify_mode => config.ssl_verify_mode, :username => config.username, :password => config.password).post(body, http_options)
   end
 
   def config
